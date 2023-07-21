@@ -1,18 +1,33 @@
 import Layout from '@/components/layout'
+import { useForm } from "react-hook-form";
+import { get_scale_notes, octave } from '@/music/functions'
 
 export default function Home() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm();
+
+  const onSubmit = (data) => {
+    const tonality = data.tonality;
+    const key = octave[Math.floor(Math.random()*octave.length)];
+    console.log(get_scale_notes(key, tonality))
+  };
+
   return (
     <Layout>
       <h1>Melody Maker</h1>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <fieldset>
           <legend>Tonality</legend>
-            <select id="tonality">
+            <select id="tonality" {...register("tonality", { required: true })}>
               <option value="major">Major</option>
               <option value="minor">Minor</option>
             </select>
         </fieldset>
         <br/><br/>
+        {errors.exampleRequired && <p>This field is required</p>}
         <button>Generate Melody</button>
       </form>
     </Layout>
