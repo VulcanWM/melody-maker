@@ -23,5 +23,5 @@ export function generate_melody_notes(tonality){
     }
     length = length_options[Math.floor(Math.random()*length_options.length)];
     melody += `${first_note}:${length}`
-    return melody;
+    return [melody, (length_of_melody+length)]
 }
