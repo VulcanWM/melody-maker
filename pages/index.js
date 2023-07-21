@@ -3,9 +3,26 @@ import { useForm } from "react-hook-form";
 import { generate_melody_notes } from '@/music/functions'
 import { useState } from 'react'
 import Vex from 'vexflow';
+import * as Tone from 'tone';
 
 export default function Home() {
+  const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Dot } = Vex.Flow;
+
+  function dotted(staveNote, noteIndex = -1) {
+    if (noteIndex < 0) {
+      Dot.buildAndAttach([staveNote], {
+        all: true
+      });
+    } else {
+      Dot.buildAndAttach([staveNote], {
+        index: noteIndex
+      });
+    }
+    return staveNote;
+  }
+
   const [melodyExists, setMelodyExists] = useState(false);
+  const [melody, setMelody] = useState("")
   
   const {
     register,
@@ -20,30 +37,29 @@ export default function Home() {
     // get notes and length of melody from the function
     const [notes, length_of_melody] = generate_melody_notes(tonality);
 
-    // change usestate variable to true
+    // change useState variables
     setMelodyExists(true);
+    setMelody(notes)
+
+    // reset output
+    document.getElementById("output").innerHTML = "";
+    const tonalityCap = tonality.charAt(0).toUpperCase() + tonality.slice(1)
+    document.getElementById("outputTitle").innerText = `${tonalityCap} Melody`
 
     // generate sheet music
-    const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
     const div = document.getElementById("output");
-    console.log(div)
+    
     const renderer = new Renderer(div, Renderer.Backends.SVG);
     renderer.resize(600, 200);
     const context = renderer.getContext();
     context.setBackgroundFillStyle("white");
-    context.clearRect(0,0,550,200)
+    context.clearRect(0,0,650,200)
 
-    // Create a stave of width 400 at position 10, 40 on the canvas.
-    const stave = new Stave(10, 40, 500);
-
-    // Add a clef and time signature.
-    stave.addClef("treble").addTimeSignature("4/4");
-
-    // Connect it to the rendering context and draw!
+    const stave = new Stave(10, 40, 600);
+    stave.addClef("treble")
     stave.setContext(context).draw();
 
     const vf_notes = []
-
     for (let note_info of notes.split("-")){
       const note = note_info.split(":")[0]
       const length = note_info.split(":")[1]
@@ -53,30 +69,66 @@ export default function Home() {
       } else if (length == 0.5){
         vf_length = "8"
       } else if (length == 1.5){
-        vf_length = ":qd"
+        vf_length = "qd"
       } else if (length == 2){
         vf_length = "h"
       }
-      vf_notes.push(new StaveNote({clef: "treble", keys: [`${note}/4`], duration: vf_length }))
+      if (note.length != 1){
+        const accidental = note.slice(1)
+        if (vf_length == "qd"){
+          vf_notes.push(dotted(new StaveNote({
+            keys: [`${note}/4`],
+            duration: vf_length
+          }).addModifier(new Accidental(accidental))))
+        } else {
+          vf_notes.push(new StaveNote({
+            keys: [`${note}/4`],
+            duration: vf_length
+          }).addModifier(new Accidental(accidental)))
+        }
+      } else {
+        if (vf_length == "qd"){
+          vf_notes.push(dotted(new StaveNote({
+            keys: [`${note}/4`],
+            duration: vf_length
+          })))
+        } else {
+          vf_notes.push(new StaveNote({
+            keys: [`${note}/4`],
+            duration: vf_length
+          }))
+        }
+      }
     }
+
     
-    // Create a voice in 4/4 and add above notes
     var voice = new Voice({num_beats: length_of_melody,  beat_value: 4});
     voice.addTickables(vf_notes);
-    
-    // Format and justify the notes to 400 pixels.
     var formatter = new Formatter().joinVoices([voice]).format([voice], 400);
-    
-    // Render voice
     voice.draw(context, stave);
   };
+  function playMelody(){
+    console.log(melody)
+    const synth = new Tone.Synth().toDestination();
+    var after = 0;
+    for (let note_info of melody.split("-")){
+      const note = note_info.split(":")[0].toUpperCase() + "4"
+      const length = note_info.split(":")[1]
+      let now = Tone.now()
+      console.log(note, length)
+      synth.triggerAttackRelease(note, parseFloat(length), now + after)
+      after += parseFloat(length);
+    }
+  }
 
   return (
     <Layout>
       <h1>Melody Maker</h1>
-      <div id="output" style={{background: "#fffff"}}></div>
+      <h2 id="outputTitle"></h2>
+      <div id="output"></div>
       {melodyExists ? 
       <>
+        <button onClick={playMelody}>Play Melody</button><br/><br/>
         <button onClick={() => setMelodyExists(false)}>Generate another melody</button>
       </> : 
         <form onSubmit={handleSubmit(onSubmit)}>
