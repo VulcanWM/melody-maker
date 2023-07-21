@@ -1,6 +1,6 @@
 import Layout from '@/components/layout'
 import { useForm } from "react-hook-form";
-import { get_scale_notes, octave } from '@/music/functions'
+import { generate_melody_notes } from '@/music/functions'
 
 export default function Home() {
   const {
@@ -11,8 +11,8 @@ export default function Home() {
 
   const onSubmit = (data) => {
     const tonality = data.tonality;
-    const key = octave[Math.floor(Math.random()*octave.length)];
-    console.log(get_scale_notes(key, tonality))
+    const notes = generate_melody_notes(tonality);
+    console.log(notes)
   };
 
   return (
