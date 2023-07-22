@@ -23,12 +23,11 @@ export default function Home() {
 
   const [melodyExists, setMelodyExists] = useState(false);
   const [melody, setMelody] = useState("")
+  const [lengthOfMelody, setLengthOfMelody] = useState(0)
 
-  function highlightNote(note_num, tonality, length_of_melody, notes){
+  function highlightNote(note_num, notes, length_of_melody){
     // reset output
     document.getElementById("output").innerHTML = "";
-    const tonalityCap = tonality.charAt(0).toUpperCase() + tonality.slice(1)
-    document.getElementById("outputTitle").innerText = `${tonalityCap} Melody`
 
     // generate sheet music
     const div = document.getElementById("output");
@@ -138,12 +137,15 @@ export default function Home() {
     // change useState variables
     setMelodyExists(true);
     setMelody(notes)
+    setLengthOfMelody(length_of_melody)
+
+    const tonalityCap = tonality.charAt(0).toUpperCase() + tonality.slice(1)
+    document.getElementById("outputTitle").innerText = `${tonalityCap} Melody`
 
     // generate sheet music
-    highlightNote(1, tonality, length_of_melody, notes)
+    highlightNote(100, notes, length_of_melody)
   };
   function playMelody(){
-    console.log(melody)
     const synth = new Tone.Synth().toDestination();
     var after = 0;
     for (let note_info of melody.split("-")){
@@ -154,6 +156,8 @@ export default function Home() {
       synth.triggerAttackRelease(note, parseFloat(length), now + after)
       after += parseFloat(length);
     }
+    highlightNote(0, melody, lengthOfMelody)
+
   }
 
   return (
