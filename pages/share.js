@@ -32,7 +32,7 @@ export default function Home() {
     melodyReal = melodyReal.replace("melody=", "")
     melodyReal = melodyReal.replace("share", "")
     melody = melodyReal;
-    lengthOfMelody = parseInt(lengthUrl)
+    lengthOfMelody = parseFloat(lengthUrl)
     highlightNote(null, melody, lengthOfMelody)
   } else {
     
