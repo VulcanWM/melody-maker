@@ -64,24 +64,24 @@ export default function Home() {
             vf_notes.push(dotted(new StaveNote({
               keys: [`${note}/4`],
               duration: vf_length
-            }).addModifier(new Accidental(accidental)).setStyle({fillStyle: "blue", strokeStyle: "blue"})))
+            }).addModifier(new Accidental(accidental)).setStyle({fillStyle: "#2393f5", strokeStyle: "#2393f5"})))
           } else {
             vf_notes.push(new StaveNote({
               keys: [`${note}/4`],
               duration: vf_length
-            }).addModifier(new Accidental(accidental)).setStyle({fillStyle: "blue", strokeStyle: "blue"}))
+            }).addModifier(new Accidental(accidental)).setStyle({fillStyle: "#2393f5", strokeStyle: "#2393f5"}))
           }
         } else {
           if (vf_length == "qd"){
             vf_notes.push(dotted(new StaveNote({
               keys: [`${note}/4`],
               duration: vf_length
-            }).setStyle({fillStyle: "blue", strokeStyle: "blue"})))
+            }).setStyle({fillStyle: "#2393f5", strokeStyle: "#2393f5"})))
           } else {
             vf_notes.push(new StaveNote({
               keys: [`${note}/4`],
               duration: vf_length
-            }).setStyle({fillStyle: "blue", strokeStyle: "blue"}))
+            }).setStyle({fillStyle: "#2393f5", strokeStyle: "#2393f5"}))
           }
         }
       } else {
@@ -143,12 +143,23 @@ export default function Home() {
     document.getElementById("outputTitle").innerText = `${tonalityCap} Melody`
 
     // generate sheet music
-    highlightNote(100, notes, length_of_melody)
+    highlightNote(null, notes, length_of_melody)
   };
   function playMelody(){
     const synth = new Tone.Synth().toDestination();
     var after = 0;
-    for (let note_info of melody.split("-")){
+    var notes_dict = {}
+    for (let this_note_num in melody.split("-")){
+      const note_info = melody.split("-")[this_note_num]
+      const length = note_info.split(":")[1]
+      after += parseFloat(length);
+      for (let i=(after-length); i <= after; i += 0.5){
+        notes_dict[i] = this_note_num;
+      }
+    }
+    after = 0;
+    for (let this_note_num in melody.split("-")){
+      const note_info = melody.split("-")[this_note_num]
       const note = note_info.split(":")[0].toUpperCase() + "4"
       const length = note_info.split(":")[1]
       let now = Tone.now()
@@ -156,7 +167,19 @@ export default function Home() {
       synth.triggerAttackRelease(note, parseFloat(length), now + after)
       after += parseFloat(length);
     }
+    
     highlightNote(0, melody, lengthOfMelody)
+    var time = 0;
+    var interval = setInterval(function() { 
+      if (time <= lengthOfMelody) {
+        highlightNote(notes_dict[time], melody, lengthOfMelody)
+        time+=0.5;
+      }
+      else { 
+        clearInterval(interval);
+        highlightNote(null, melody, lengthOfMelody)
+      }
+    }, 500);
 
   }
 
