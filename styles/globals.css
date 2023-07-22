@@ -56,3 +56,7 @@ fieldset:hover {
 fieldset:hover  legend{
     color:var(--primary-ligher)
 }
+
+.red {
+  color: #fd1403;
+}

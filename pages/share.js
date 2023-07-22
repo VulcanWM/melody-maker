@@ -14,6 +14,7 @@ export default function Home() {
 
   var melody = "";
   var lengthOfMelody = 0;
+  var melodyExists = false;
 
   const router = useRouter()
   const melodyUrl = decodeURI(router.query.melody);
@@ -32,10 +33,16 @@ export default function Home() {
     melodyReal = melodyReal.replace("melody=", "")
     melodyReal = melodyReal.replace("share", "")
     melody = melodyReal;
+    var length_idk = 0;
+    for (let note_info of melody.split("-")){
+        const length = parseFloat(note_info.split(":")[1])
+        length_idk += parseFloat(length)
+    }
     lengthOfMelody = parseFloat(lengthUrl)
-    highlightNote(null, melody, lengthOfMelody)
-  } else {
-    
+    if (length_idk == lengthOfMelody){
+        melodyExists = true;
+        highlightNote(null, melody, lengthOfMelody)
+    }
   }
 
   function dotted(staveNote, noteIndex = -1) {
@@ -214,10 +221,18 @@ export default function Home() {
       <h1>Melody Maker</h1>
       <h2 id="outputTitle"></h2>
       <div id="output"></div>
-        <button className={styles.inline_button} onClick={playMelody}>Play Melody</button>
-        <button className={styles.inline_button} onClick={download}>Export as MIDI</button>
-        <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?length=${lengthOfMelody}&melody=${melody}`)}}>Copy Melody Link to Share</button><br/><br/>
-        <button onClick={() => router.push("/")}>Generate another melody</button>
+        {melodyExists ? 
+            <>
+                <button className={styles.inline_button} onClick={playMelody}>Play Melody</button>
+                <button className={styles.inline_button} onClick={download}>Export as MIDI</button>
+                <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?length=${lengthOfMelody}&melody=${melody}`)}}>Copy Melody Link to Share</button><br/><br/>
+                <button onClick={() => router.push("/")}>Generate another melody</button>
+            </> : 
+            <>
+                <h3 className="red">Incorrect sharing url!</h3>
+                <button onClick={() => router.push("/")}>Generate a melody</button>
+            </>
+        }
     </Layout>
   )
 }
