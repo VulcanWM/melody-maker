@@ -22,6 +22,7 @@ button {
   padding: 10px;
   border-radius: 5px;
   font: inherit;
+  cursor: pointer;
 }
 
 fieldset {

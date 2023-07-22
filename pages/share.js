@@ -11,11 +11,32 @@ import { useRouter } from 'next/router'
 export default function Home() {
   const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Dot } = Vex.Flow;
 
-  const [melodyExists, setMelodyExists] = useState(false);
-  const [melody, setMelody] = useState("")
-  const [lengthOfMelody, setLengthOfMelody] = useState(0)
+
+  var melody = "";
+  var lengthOfMelody = 0;
 
   const router = useRouter()
+  const melodyUrl = decodeURI(router.query.melody);
+  const lengthUrl = router.query.length;
+
+  if (lengthUrl && melodyUrl){
+    var href;
+    if (typeof window !== 'undefined') {
+      href = window.location.href;
+    }
+    const split = href.split("/")
+    const last = split[split.length - 1]
+    var melodyReal = last.replace("?", "")
+    melodyReal = melodyReal.replace("&", "")
+    melodyReal = melodyReal.replace(`length=${lengthUrl}`, "")
+    melodyReal = melodyReal.replace("melody=", "")
+    melodyReal = melodyReal.replace("share", "")
+    melody = melodyReal;
+    lengthOfMelody = parseInt(lengthUrl)
+    highlightNote(null, melody, lengthOfMelody)
+  } else {
+    
+  }
 
   function dotted(staveNote, noteIndex = -1) {
     if (noteIndex < 0) {
@@ -157,31 +178,6 @@ export default function Home() {
     document.body.removeChild(link);
   }
 
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm();
-
-  const onSubmit = (data) => {
-    // get tonality from form
-    const tonality = data.tonality;
-
-    // get notes and length of melody from the function
-    const [notes, length_of_melody] = generate_melody_notes(tonality);
-
-    // change useState variables
-    setMelodyExists(true);
-    setMelody(notes)
-    setLengthOfMelody(length_of_melody)
-
-    const tonalityCap = tonality.charAt(0).toUpperCase() + tonality.slice(1)
-    document.getElementById("outputTitle").innerText = `${tonalityCap} Melody`
-    console.log(`http://localhost:3000/?length=${length_of_melody}&melody=${encodeURI(notes)}`)
-    // generate sheet music
-    highlightNote(null, notes, length_of_melody)
-  };
   function playMelody(){
     const synth = new Tone.Synth().toDestination();
     var after = 0;
@@ -218,26 +214,10 @@ export default function Home() {
       <h1>Melody Maker</h1>
       <h2 id="outputTitle"></h2>
       <div id="output"></div>
-      {melodyExists ? 
-      <>
         <button className={styles.inline_button} onClick={playMelody}>Play Melody</button>
         <button className={styles.inline_button} onClick={download}>Export as MIDI</button>
         <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?length=${lengthOfMelody}&melody=${melody}`)}}>Copy Melody Link to Share</button><br/><br/>
-        <button onClick={() => setMelodyExists(false)}>Generate another melody</button>
-      </> : 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <fieldset>
-            <legend>Tonality</legend>
-              <select id="tonality" {...register("tonality", { required: true })}>
-                <option value="major">Major</option>
-                <option value="minor">Minor</option>
-              </select>
-          </fieldset>
-          <br/><br/>
-          {errors.exampleRequired && <p>This field is required</p>}
-          <button>Generate Melody</button>
-        </form>
-      }
+        <button onClick={() => router.push("/")}>Generate another melody</button>
     </Layout>
   )
 }
