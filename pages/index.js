@@ -36,9 +36,9 @@ export default function Home() {
     renderer.resize(600, 200);
     const context = renderer.getContext();
     context.setBackgroundFillStyle("white");
-    context.clearRect(0,0,650,200)
+    context.clearRect(0,0,700,200)
 
-    const stave = new Stave(10, 40, 600);
+    const stave = new Stave(10, 40, 650);
     stave.addClef("treble")
     stave.setContext(context).draw();
 
@@ -151,35 +151,29 @@ export default function Home() {
     var notes_dict = {}
     for (let this_note_num in melody.split("-")){
       const note_info = melody.split("-")[this_note_num]
-      const length = note_info.split(":")[1]
-      after += parseFloat(length);
-      for (let i=(after-length); i <= after; i += 0.5){
-        notes_dict[i] = this_note_num;
-      }
-    }
-    after = 0;
-    for (let this_note_num in melody.split("-")){
-      const note_info = melody.split("-")[this_note_num]
       const note = note_info.split(":")[0].toUpperCase() + "4"
       const length = note_info.split(":")[1]
-      let now = Tone.now()
-      console.log(note, length)
-      synth.triggerAttackRelease(note, parseFloat(length), now + after)
+      synth.triggerAttackRelease(note, parseFloat(length), Tone.now() + after);
       after += parseFloat(length);
+      for (let i=(after-length); i <= after; i += 0.1){
+        notes_dict[Math.round(i*10)/10] = this_note_num;
+      }
+      console.log(notes_dict)
     }
     
     highlightNote(0, melody, lengthOfMelody)
-    var time = 0;
+    var time = 0.2;
     var interval = setInterval(function() { 
+      time = Math.round(time*10)/10
       if (time <= lengthOfMelody) {
         highlightNote(notes_dict[time], melody, lengthOfMelody)
-        time+=0.5;
+        time+=0.1;
       }
       else { 
         clearInterval(interval);
         highlightNote(null, melody, lengthOfMelody)
       }
-    }, 500);
+    }, 100);
 
   }
 
