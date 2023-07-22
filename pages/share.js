@@ -1,7 +1,4 @@
 import Layout from '@/components/layout'
-import { useForm } from "react-hook-form";
-import { generate_melody_notes } from '@/music/functions'
-import { useState } from 'react'
 import Vex from 'vexflow';
 import * as Tone from 'tone';
 import MidiWriter from 'midi-writer-js';
@@ -10,7 +7,6 @@ import { useRouter } from 'next/router'
 
 export default function Home() {
   const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Dot } = Vex.Flow;
-
 
   var melody = "";
   var lengthOfMelody = 0;
@@ -69,9 +65,9 @@ export default function Home() {
     renderer.resize(600, 200);
     const context = renderer.getContext();
     context.setBackgroundFillStyle("white");
-    context.clearRect(0,0,700,200)
+    context.clearRect(0,0,750,200)
 
-    const stave = new Stave(10, 40, 650);
+    const stave = new Stave(10, 40, 700);
     stave.addClef("treble")
     stave.setContext(context).draw();
     console.log(notes)
