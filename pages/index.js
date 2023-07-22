@@ -23,24 +23,8 @@ export default function Home() {
 
   const [melodyExists, setMelodyExists] = useState(false);
   const [melody, setMelody] = useState("")
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm();
 
-  const onSubmit = (data) => {
-    // get tonality from form
-    const tonality = data.tonality;
-
-    // get notes and length of melody from the function
-    const [notes, length_of_melody] = generate_melody_notes(tonality);
-
-    // change useState variables
-    setMelodyExists(true);
-    setMelody(notes)
-
+  function highlightNote(note_num, tonality, length_of_melody, notes){
     // reset output
     document.getElementById("output").innerHTML = "";
     const tonalityCap = tonality.charAt(0).toUpperCase() + tonality.slice(1)
@@ -60,7 +44,8 @@ export default function Home() {
     stave.setContext(context).draw();
 
     const vf_notes = []
-    for (let note_info of notes.split("-")){
+    for (let this_note_num in notes.split("-")){
+      const note_info = notes.split("-")[this_note_num]
       const note = note_info.split(":")[0]
       const length = note_info.split(":")[1]
       var vf_length;
@@ -73,39 +58,89 @@ export default function Home() {
       } else if (length == 2){
         vf_length = "h"
       }
-      if (note.length != 1){
-        const accidental = note.slice(1)
-        if (vf_length == "qd"){
-          vf_notes.push(dotted(new StaveNote({
-            keys: [`${note}/4`],
-            duration: vf_length
-          }).addModifier(new Accidental(accidental))))
+      if (note_num == this_note_num){
+        if (note.length != 1){
+          const accidental = note.slice(1)
+          if (vf_length == "qd"){
+            vf_notes.push(dotted(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            }).addModifier(new Accidental(accidental)).setStyle({fillStyle: "blue", strokeStyle: "blue"})))
+          } else {
+            vf_notes.push(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            }).addModifier(new Accidental(accidental)).setStyle({fillStyle: "blue", strokeStyle: "blue"}))
+          }
         } else {
-          vf_notes.push(new StaveNote({
-            keys: [`${note}/4`],
-            duration: vf_length
-          }).addModifier(new Accidental(accidental)))
+          if (vf_length == "qd"){
+            vf_notes.push(dotted(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            }).setStyle({fillStyle: "blue", strokeStyle: "blue"})))
+          } else {
+            vf_notes.push(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            }).setStyle({fillStyle: "blue", strokeStyle: "blue"}))
+          }
         }
       } else {
-        if (vf_length == "qd"){
-          vf_notes.push(dotted(new StaveNote({
-            keys: [`${note}/4`],
-            duration: vf_length
-          })))
+        if (note.length != 1){
+          const accidental = note.slice(1)
+          if (vf_length == "qd"){
+            vf_notes.push(dotted(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            }).addModifier(new Accidental(accidental))))
+          } else {
+            vf_notes.push(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            }).addModifier(new Accidental(accidental)))
+          }
         } else {
-          vf_notes.push(new StaveNote({
-            keys: [`${note}/4`],
-            duration: vf_length
-          }))
+          if (vf_length == "qd"){
+            vf_notes.push(dotted(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            })))
+          } else {
+            vf_notes.push(new StaveNote({
+              keys: [`${note}/4`],
+              duration: vf_length
+            }))
+          }
         }
       }
     }
-
     
     var voice = new Voice({num_beats: length_of_melody,  beat_value: 4});
     voice.addTickables(vf_notes);
     var formatter = new Formatter().joinVoices([voice]).format([voice], 400);
     voice.draw(context, stave);
+  }
+
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm();
+
+  const onSubmit = (data) => {
+    // get tonality from form
+    const tonality = data.tonality;
+
+    // get notes and length of melody from the function
+    const [notes, length_of_melody] = generate_melody_notes(tonality);
+
+    // change useState variables
+    setMelodyExists(true);
+    setMelody(notes)
+
+    // generate sheet music
+    highlightNote(1, tonality, length_of_melody, notes)
   };
   function playMelody(){
     console.log(melody)

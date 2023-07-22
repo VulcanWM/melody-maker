@@ -15,13 +15,12 @@ export function generate_melody_notes(tonality){
     const first_note = scale_notes[Math.floor(Math.random()*scale_notes.length)];
     var length_of_melody = length;
     var melody = `${first_note}:${length}-`;
-    while (length_of_melody < 13){
+    while (length_of_melody < 15){
         length = length_options[Math.floor(Math.random()*length_options.length)];
         let note = scale_notes[Math.floor(Math.random()*scale_notes.length)];
         melody += `${note}:${length}-`;
         length_of_melody += length;
     }
-    length = length_options[Math.floor(Math.random()*length_options.length)];
-    melody += `${first_note}:${length}`
-    return [melody, (length_of_melody+length)]
+    melody = melody.slice(0, -1);
+    return [melody, (length_of_melody)]
 }
