@@ -4,6 +4,8 @@ import { generate_melody_notes } from '@/music/functions'
 import { useState } from 'react'
 import Vex from 'vexflow';
 import * as Tone from 'tone';
+import MidiWriter from 'midi-writer-js';
+import styles from '@/styles/index.module.css'
 
 export default function Home() {
   const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Dot } = Vex.Flow;
@@ -120,6 +122,40 @@ export default function Home() {
     voice.draw(context, stave);
   }
 
+  function download() {
+    var link = document.createElement("a");
+    link.download = "melody.midi";
+
+    // make track
+    const track = new MidiWriter.Track();
+    track.addEvent(new MidiWriter.ProgramChangeEvent({instrument: 1}));
+
+    for (let note_info of melody.split("-")){
+      const pitch = note_info.split(":")[0] + "4"
+      const length = parseFloat(note_info.split(":")[1])
+      var midi_length;
+      if (length == 0.5){
+        midi_length = "8";
+      } else if (length == 1){
+        midi_length = "4"
+      } else if (length == 1.5){
+        midi_length = "d4"
+      } else if (length == 2){
+        midi_length = "2"
+      }
+      console.log(pitch, length)
+      const note = new MidiWriter.NoteEvent({pitch: pitch, duration: midi_length});
+      console.log(note)
+      track.addEvent(note);
+    }
+    console.log(track)
+    const write = new MidiWriter.Writer(track);
+    link.href = write.dataUri();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   
   const {
     register,
@@ -158,7 +194,6 @@ export default function Home() {
       for (let i=(after-length); i <= after; i += 0.1){
         notes_dict[Math.round(i*10)/10] = this_note_num;
       }
-      console.log(notes_dict)
     }
     
     highlightNote(0, melody, lengthOfMelody)
@@ -184,7 +219,8 @@ export default function Home() {
       <div id="output"></div>
       {melodyExists ? 
       <>
-        <button onClick={playMelody}>Play Melody</button><br/><br/>
+        <button className={styles.inline_button} onClick={playMelody}>Play Melody</button>
+        <button className={styles.inline_button} onClick={download}>Export as MIDI</button><br/><br/>
         <button onClick={() => setMelodyExists(false)}>Generate another melody</button>
       </> : 
         <form onSubmit={handleSubmit(onSubmit)}>
