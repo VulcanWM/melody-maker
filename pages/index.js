@@ -39,9 +39,9 @@ export default function Home() {
     renderer.resize(600, 200);
     const context = renderer.getContext();
     context.setBackgroundFillStyle("white");
-    context.clearRect(0,0,750,200)
+    context.clearRect(0,0,800,200)
 
-    const stave = new Stave(10, 40, 700);
+    const stave = new Stave(10, 40, 750);
     stave.addClef("treble")
     stave.setContext(context).draw();
     const vf_notes = []

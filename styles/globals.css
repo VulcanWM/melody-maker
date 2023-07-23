@@ -23,6 +23,7 @@ button {
   border-radius: 5px;
   font: inherit;
   cursor: pointer;
+  margin-bottom: 10px;
 }
 
 fieldset {
@@ -70,4 +71,8 @@ fieldset:hover legend{
 
 .red {
   color: #fd1403;
+}
+
+#output {
+  margin-bottom: 10px;
 }
