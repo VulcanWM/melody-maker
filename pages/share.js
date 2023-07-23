@@ -197,6 +197,7 @@ export default function Home( { melody, lengthOfMelody }) {
             else { 
               clearInterval(interval);
               highlightNote(null, melody, lengthOfMelody)
+              setMelodyPlaying(false);
             }
           }
       }, 100);
