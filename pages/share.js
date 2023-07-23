@@ -6,9 +6,12 @@ import styles from '@/styles/index.module.css'
 import { useRouter } from 'next/router'
 import { getUrl } from 'nextjs-current-url/server';
 import { useEffect } from 'react'
+import { useState } from 'react'
 
 export default function Home( { melody, lengthOfMelody }) {
   const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Dot } = Vex.Flow;
+
+  const [melodyPlaying, setMelodyPlaying] = useState(false)
 
   const router = useRouter()
   useEffect(() => {
@@ -160,33 +163,46 @@ export default function Home( { melody, lengthOfMelody }) {
   }
 
   function playMelody(){
-    const synth = new Tone.Synth().toDestination();
-    var after = 0;
-    var notes_dict = {}
-    for (let this_note_num in melody.split("-")){
-      const note_info = melody.split("-")[this_note_num]
-      const note = note_info.split(":")[0].toUpperCase() + "4"
-      const length = note_info.split(":")[1]
-      synth.triggerAttackRelease(note, parseFloat(length), Tone.now() + after);
-      after += parseFloat(length);
-      for (let i=(after-length); i <= after; i += 0.1){
-        notes_dict[Math.round(i*10)/10] = this_note_num;
+    var interval;
+    if (melodyPlaying == false){
+      setMelodyPlaying(true);
+      const synth = new Tone.Synth().toDestination();
+      var after = 0;
+      var notes_dict = {}
+      for (let this_note_num in melody.split("-")){
+        const note_info = melody.split("-")[this_note_num]
+        const note = note_info.split(":")[0].toUpperCase().replace("##", "x") + "4"
+        const length = note_info.split(":")[1]
+        synth.triggerAttackRelease(note, parseFloat(length), Tone.now() + after);
+        after += parseFloat(length);
+        for (let i=(after-length); i <= after; i += 0.1){
+          notes_dict[Math.round(i*10)/10] = this_note_num;
+        }
       }
+      
+      highlightNote(0, melody, lengthOfMelody)
+      var time = 0.2;
+      interval = setInterval(function() {
+          if (document.getElementById("playingButton") == null || document.getElementById("playingButton").innerText.includes("Play")){
+            clearInterval(interval);
+            highlightNote(null, melody, lengthOfMelody);
+            synth.disconnect()
+            setMelodyPlaying(false)
+          } else {
+            time = Math.round(time*10)/10
+            if (time <= lengthOfMelody) {
+              highlightNote(notes_dict[time], melody, lengthOfMelody)
+              time+=0.1;
+            }
+            else { 
+              clearInterval(interval);
+              highlightNote(null, melody, lengthOfMelody)
+            }
+          }
+      }, 100);
+    } else {
+      setMelodyPlaying(false);
     }
-    
-    highlightNote(0, melody, lengthOfMelody)
-    var time = 0.2;
-    var interval = setInterval(function() { 
-      time = Math.round(time*10)/10
-      if (time <= lengthOfMelody) {
-        highlightNote(notes_dict[time], melody, lengthOfMelody)
-        time+=0.1;
-      }
-      else { 
-        clearInterval(interval);
-        highlightNote(null, melody, lengthOfMelody)
-      }
-    }, 100);
 
   }
 
@@ -195,10 +211,10 @@ export default function Home( { melody, lengthOfMelody }) {
       <h1>Melody Maker</h1>
       <h2 id="outputTitle"></h2>
       <div id="output"></div>
-            <button className={styles.inline_button} onClick={playMelody}>Play Melody</button>
-            <button className={styles.inline_button} onClick={download}>Export as MIDI</button>
-            <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?melody=${encodeURIComponent(melody)}`)}}>Copy Melody Link to Share</button><br/><br/>
-            <button onClick={() => router.push("/")}>Generate another melody</button>
+        <button className={styles.inline_button} id="playingButton" onClick={playMelody}>{melodyPlaying ? "Stop" : "Play"} Melody</button>
+        <button className={styles.inline_button} onClick={download}>Export as MIDI</button>
+        <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?melody=${encodeURIComponent(melody)}`)}}>Copy Melody Link to Share</button><br/><br/>
+        <button onClick={() => router.push("/")}>Generate another melody</button>
     </Layout>
   )
 }

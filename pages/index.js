@@ -6,7 +6,6 @@ import Vex from 'vexflow';
 import * as Tone from 'tone';
 import MidiWriter from 'midi-writer-js';
 import styles from '@/styles/index.module.css'
-import { useRouter } from 'next/router'
 
 export default function Home() {
   const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Dot } = Vex.Flow;
@@ -15,8 +14,6 @@ export default function Home() {
   const [melody, setMelody] = useState("")
   const [lengthOfMelody, setLengthOfMelody] = useState(0)
   const [melodyPlaying, setMelodyPlaying] = useState(false)
-
-  const router = useRouter()
 
   function dotted(staveNote, noteIndex = -1) {
     if (noteIndex < 0) {
