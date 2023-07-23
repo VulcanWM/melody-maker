@@ -191,7 +191,7 @@ export default function Home() {
       var notes_dict = {}
       for (let this_note_num in melody.split("-")){
         const note_info = melody.split("-")[this_note_num]
-        const note = note_info.split(":")[0].toUpperCase() + "4"
+        const note = note_info.split(":")[0].toUpperCase().replace("##", "x") + "4"
         const length = note_info.split(":")[1]
         synth.triggerAttackRelease(note, parseFloat(length), Tone.now() + after);
         after += parseFloat(length);
