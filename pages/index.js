@@ -178,7 +178,7 @@ export default function Home() {
 
     const tonalityCap = tonality.charAt(0).toUpperCase() + tonality.slice(1)
     document.getElementById("outputTitle").innerText = `${tonalityCap} Melody`
-    console.log(`http://localhost:3000/?length=${length_of_melody}&melody=${encodeURI(notes)}`)
+    console.log(`http://localhost:3000/?length=${length_of_melody}&melody=${encodeURIComponent(notes)}`)
     // generate sheet music
     highlightNote(null, notes, length_of_melody)
   };
@@ -222,7 +222,7 @@ export default function Home() {
       <>
         <button className={styles.inline_button} onClick={playMelody}>Play Melody</button>
         <button className={styles.inline_button} onClick={download}>Export as MIDI</button>
-        <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?length=${lengthOfMelody}&melody=${melody}`)}}>Copy Melody Link to Share</button><br/><br/>
+        <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?melody=${encodeURIComponent(melody)}`)}}>Copy Melody Link to Share</button><br/><br/>
         <button onClick={() => setMelodyExists(false)}>Generate another melody</button>
       </> : 
         <form onSubmit={handleSubmit(onSubmit)}>
