@@ -14,6 +14,7 @@ export default function Home() {
   const [melodyExists, setMelodyExists] = useState(false);
   const [melody, setMelody] = useState("")
   const [lengthOfMelody, setLengthOfMelody] = useState(0)
+  const [melodyPlaying, setMelodyPlaying] = useState(false)
 
   const router = useRouter()
 
@@ -46,11 +47,9 @@ export default function Home() {
     const stave = new Stave(10, 40, 700);
     stave.addClef("treble")
     stave.setContext(context).draw();
-    console.log(notes)
     const vf_notes = []
     for (let this_note_num in notes.split("-")){
       const note_info = notes.split("-")[this_note_num]
-      console.log(note_info)
       const note = note_info.split(":")[0]
       const length = note_info.split(":")[1]
       var vf_length;
@@ -165,11 +164,12 @@ export default function Home() {
   } = useForm();
 
   const onSubmit = (data) => {
-    // get tonality from form
+    // get tonality and length from form
     const tonality = data.tonality;
+    const length_of_melody = data.length;
 
-    // get notes and length of melody from the function
-    const [notes, length_of_melody] = generate_melody_notes(tonality);
+    // get notes from the function
+    const notes = generate_melody_notes(tonality, length_of_melody);
 
     // change useState variables
     setMelodyExists(true);
@@ -178,38 +178,51 @@ export default function Home() {
 
     const tonalityCap = tonality.charAt(0).toUpperCase() + tonality.slice(1)
     document.getElementById("outputTitle").innerText = `${tonalityCap} Melody`
-    console.log(`http://localhost:3000/?length=${length_of_melody}&melody=${encodeURIComponent(notes)}`)
     // generate sheet music
     highlightNote(null, notes, length_of_melody)
   };
+
   function playMelody(){
-    const synth = new Tone.Synth().toDestination();
-    var after = 0;
-    var notes_dict = {}
-    for (let this_note_num in melody.split("-")){
-      const note_info = melody.split("-")[this_note_num]
-      const note = note_info.split(":")[0].toUpperCase() + "4"
-      const length = note_info.split(":")[1]
-      synth.triggerAttackRelease(note, parseFloat(length), Tone.now() + after);
-      after += parseFloat(length);
-      for (let i=(after-length); i <= after; i += 0.1){
-        notes_dict[Math.round(i*10)/10] = this_note_num;
+    var interval;
+    if (melodyPlaying == false){
+      setMelodyPlaying(true);
+      const synth = new Tone.Synth().toDestination();
+      var after = 0;
+      var notes_dict = {}
+      for (let this_note_num in melody.split("-")){
+        const note_info = melody.split("-")[this_note_num]
+        const note = note_info.split(":")[0].toUpperCase() + "4"
+        const length = note_info.split(":")[1]
+        synth.triggerAttackRelease(note, parseFloat(length), Tone.now() + after);
+        after += parseFloat(length);
+        for (let i=(after-length); i <= after; i += 0.1){
+          notes_dict[Math.round(i*10)/10] = this_note_num;
+        }
       }
+      
+      highlightNote(0, melody, lengthOfMelody)
+      var time = 0.2;
+      interval = setInterval(function() {
+          if (document.getElementById("playingButton") == null || document.getElementById("playingButton").innerText.includes("Play")){
+            clearInterval(interval);
+            highlightNote(null, melody, lengthOfMelody);
+            synth.disconnect()
+            setMelodyPlaying(false)
+          } else {
+            time = Math.round(time*10)/10
+            if (time <= lengthOfMelody) {
+              highlightNote(notes_dict[time], melody, lengthOfMelody)
+              time+=0.1;
+            }
+            else { 
+              clearInterval(interval);
+              highlightNote(null, melody, lengthOfMelody)
+            }
+          }
+      }, 100);
+    } else {
+      setMelodyPlaying(false);
     }
-    
-    highlightNote(0, melody, lengthOfMelody)
-    var time = 0.2;
-    var interval = setInterval(function() { 
-      time = Math.round(time*10)/10
-      if (time <= lengthOfMelody) {
-        highlightNote(notes_dict[time], melody, lengthOfMelody)
-        time+=0.1;
-      }
-      else { 
-        clearInterval(interval);
-        highlightNote(null, melody, lengthOfMelody)
-      }
-    }, 100);
 
   }
 
@@ -220,7 +233,7 @@ export default function Home() {
       <div id="output"></div>
       {melodyExists ? 
       <>
-        <button className={styles.inline_button} onClick={playMelody}>Play Melody</button>
+        <button className={styles.inline_button} id="playingButton" onClick={playMelody}>{melodyPlaying ? "Stop" : "Play"} Melody</button>
         <button className={styles.inline_button} onClick={download}>Export as MIDI</button>
         <button className={styles.inline_button} onClick={() => {navigator.clipboard.writeText(`https://melody-maker-theta.vercel.app/share?melody=${encodeURIComponent(melody)}`)}}>Copy Melody Link to Share</button><br/><br/>
         <button onClick={() => setMelodyExists(false)}>Generate another melody</button>
@@ -232,6 +245,11 @@ export default function Home() {
                 <option value="major">Major</option>
                 <option value="minor">Minor</option>
               </select>
+          </fieldset>
+          <br/><br/>
+          <fieldset>
+            <legend>Length</legend><br/>
+              <input defaultValue="15" type="number" min="5" max="15" id="length" {...register("length", { required: true })}/>
           </fieldset>
           <br/><br/>
           {errors.exampleRequired && <p>This field is required</p>}

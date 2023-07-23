@@ -42,6 +42,17 @@ select {
     line-height: 2;
     color:black;
     border-radius: 10px;
+    border: none;
+}
+
+input {
+  width: 100%;
+  outline: none;
+  padding: 4px 4px 4px 4px;
+  font: inherit;
+  color:black;
+  border-radius: 10px;
+  border: none;
 }
 
 legend{
@@ -53,7 +64,7 @@ fieldset:hover {
     border-color: var(--primary-ligher)
 }
 
-fieldset:hover  legend{
+fieldset:hover legend{
     color:var(--primary-ligher)
 }
 
